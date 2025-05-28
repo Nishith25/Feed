@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Food Waste Management | Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        :root {
+            --primary-color: #000000;
+            --secondary-color: #000000;
+            --accent-color: #000000;
+            --light-color: #F1F8E9;
+            --dark-color: #000000;
+            --text-color: #333;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+        }
+        
+        .container {
+            max-width: 1200px;
+            padding: 2rem;
+        }
+        
+        .app-title {
+            color: var(--dark-color);
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            letter-spacing: 1px;
+        }
+        
+        .wrapper {
+            display: flex;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .logo-container {
+            flex: 1;
+            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .logo {
+            max-width: 100%;
+            height: auto;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+        }
+        
+        .login-form {
+            flex: 1;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .login-form h1 {
+            color: var(--dark-color);
+            margin-bottom: 2rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .input-box {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        
+        .input-box input {
+            width: 100%;
+            padding: 15px 20px 15px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        .input-box input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.2);
+            outline: none;
+        }
+        
+        .input-box i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+            font-size: 20px;
+        }
+        
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 14px;
+        }
+        
+        .remember-forgot label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .remember-forgot input {
+            margin-right: 8px;
+            accent-color: var(--primary-color);
+        }
+        
+        .remember-forgot a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .remember-forgot a:hover {
+            color: var(--dark-color);
+            text-decoration: underline;
+        }
+        
+        .btn-login {
+            background: var(--primary-color);
+            border: none;
+            padding: 12px;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn-login:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .register-link {
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .register-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        
+        .register-link a:hover {
+            color: var(--dark-color);
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .wrapper {
+                flex-direction: column;
+            }
+            
+            .logo-container {
+                padding: 1.5rem;
+            }
+            
+            .login-form {
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="app-title text-center">Food Waste Management System</h1>
+        <div class="wrapper">
+            <div class="logo-container">
+                <img src="logo.jpeg" alt="Food Waste Management Logo" class="logo">
+            </div>
+            <div class="login-form">
+                <form>
+                    <h1>Welcome Back</h1>
+                    <div class="input-box">
+                        <input type="text" placeholder="Username" id="username" required>
+                        <i class='bx bxs-user'></i>
+                    </div>
+                    <div class="input-box">
+                        <input type="password" id="password" placeholder="Password" required>
+                        <i class='bx bxs-lock-alt'></i>
+                    </div>
+                    <div class="remember-forgot">
+                        <label><input type="checkbox"> Remember me</label>
+                        <a href="#">Forgot password?</a>
+                    </div>
+                    <button type="button" class="btn-login" onclick="auth()">Login</button>
+                    <div class="register-link">
+                        <p>Don't have an account? <a href="#">Register here</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function auth() {
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+
+            if (username === "admin1" && password === "admin123") {
+                // Create a nice looking alert with animation
+                const alertDiv = document.createElement('div');
+                alertDiv.style.position = 'fixed';
+                alertDiv.style.top = '20px';
+                alertDiv.style.right = '20px';
+                alertDiv.style.backgroundColor = '#4CAF50';
+                alertDiv.style.color = 'white';
+                alertDiv.style.padding = '15px 25px';
+                alertDiv.style.borderRadius = '5px';
+                alertDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                alertDiv.style.zIndex = '1000';
+                alertDiv.style.animation = 'slideIn 0.5s forwards';
+                alertDiv.innerHTML = '<i class="bx bx-check-circle" style="margin-right: 10px;"></i> Login successful! Redirecting...';
+                document.body.appendChild(alertDiv);
+                
+                // Remove the alert after 3 seconds
+                setTimeout(() => {
+                    alertDiv.style.animation = 'slideOut 0.5s forwards';
+                    setTimeout(() => {
+                        document.body.removeChild(alertDiv);
+                        window.location.href = "home.html";
+                    }, 500);
+                }, 2000);
+            } else {
+                // Create error alert
+                const errorDiv = document.createElement('div');
+                errorDiv.style.position = 'fixed';
+                errorDiv.style.top = '20px';
+                errorDiv.style.right = '20px';
+                errorDiv.style.backgroundColor = '#f44336';
+                errorDiv.style.color = 'white';
+                errorDiv.style.padding = '15px 25px';
+                errorDiv.style.borderRadius = '5px';
+                errorDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+                errorDiv.style.zIndex = '1000';
+                errorDiv.style.animation = 'slideIn 0.5s forwards';
+                errorDiv.innerHTML = '<i class="bx bx-error-circle" style="margin-right: 10px;"></i> Invalid username or password';
+                document.body.appendChild(errorDiv);
+                
+                // Remove the alert after 3 seconds
+                setTimeout(() => {
+                    errorDiv.style.animation = 'slideOut 0.5s forwards';
+                    setTimeout(() => {
+                        document.body.removeChild(errorDiv);
+                    }, 500);
+                }, 3000);
+                
+                // Add shake animation to form
+                const form = document.querySelector('.login-form');
+                form.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    form.style.animation = '';
+                }, 500);
+            }
+        }
+    </script>
+
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+    </style>
+</body>
+</html>
