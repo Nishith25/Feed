@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Donor Portal | Share Surplus Food</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --primary-light: #81C784;
+            --primary-dark: #388E3C;
+            --secondary: #FF9800;
+            --accent: #2196F3;
+            --text: #333;
+            --text-light: #777;
+            --bg: #f9f9f9;
+            --card-bg: #fff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            text-decoration: none;
+        }
+
+        .navbar-nav {
+            display: flex;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-item {
+            margin-left: 1.5rem;
+        }
+
+        .nav-link {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            color: var(--primary-dark);
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary);
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-warning {
+            background-color: var(--secondary);
+        }
+
+        .btn-warning:hover {
+            background-color: #e68a00;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .header h1 {
+            color: var(--primary-dark);
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            margin: 0 0.5rem;
+        }
+
+        .nav-tab.active {
+            color: var(--primary-dark);
+            border-bottom-color: var(--primary);
+        }
+
+        .nav-tab:hover {
+            color: var(--primary);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            margin-bottom: 1.5rem;
+            color: var(--primary-dark);
+            font-size: 1.5rem;
+        }
+
+        /* Map */
+        #mapContainer {
+            height: 500px;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            z-index: 1;
+            border: 1px solid #eee;
+        }
+
+        /* Dashboard */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-card h3 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Food Items */
+        .food-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .food-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .food-item h3 {
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .food-item p {
+            margin-bottom: 0.3rem;
+            color: var(--text-light);
+        }
+
+        .food-item .btn {
+            padding: 0.6rem 1.2rem;
+            white-space: nowrap;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+
+        /* Delivery Info */
+        .delivery-contact {
+            background: #f5f9f5;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+        }
+
+        .delivery-contact h3 {
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+        }
+
+        /* Donation History */
+        .donation-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .donation-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-3 {
+            margin-top: 1.5rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .navbar {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            
+            .navbar-nav {
+                margin-top: 1rem;
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .nav-item {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .food-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .food-item .btn {
+                margin-top: 1rem;
+                align-self: flex-end;
+            }
+            
+            .nav-tabs {
+                justify-content: flex-start;
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 0.5rem;
+            }
+            
+            .container {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-item {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">FoodShare</a>
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="index.html">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="donor.html">Donate Food</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="recipients.html">Request Food</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="about.html">About</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="contact.html">Contact</a>
+            </li>
+            <li class="nav-item">
+                <a class="btn btn-warning" href="login.html">Sign In</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>Food Donor Portal</h1>
+            <p>Connect with local organizations to donate surplus food and help reduce food waste in your community.</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="openTab('requests')">
+                <i class="fas fa-utensils"></i> Food Requests
+            </div>
+            <div class="nav-tab" onclick="openTab('map')">
+                <i class="fas fa-map-marked-alt"></i> Drop-off Map
+            </div>
+            <div class="nav-tab" onclick="openTab('dashboard')">
+                <i class="fas fa-chart-line"></i> My Donations
+            </div>
+        </div>
+
+        <!-- Food Requests Tab -->
+        <div id="requests" class="tab-content active">
+            <div class="card">
+                <h2><i class="fas fa-list"></i> Active Food Requests</h2>
+                <div id="requestsList">
+                    <!-- Sample request (will be replaced by dynamic content) -->
+                    <div class="food-item">
+                        <div>
+                            <h3>Loading requests...</h3>
+                            <p><strong>Requested by:</strong> Loading...</p>
+                            <p><strong>Food Type:</strong> Loading...</p>
+                            <p><strong>Quantity Needed:</strong> Loading...</p>
+                        </div>
+                        <button class="btn" disabled>
+                            <span>Donate Food</span> <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="deliveryInfo" class="card hidden">
+                <!-- Delivery info will be inserted here dynamically -->
+            </div>
+        </div>
+
+        <!-- Map Tab -->
+        <div id="map" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-map-marker-alt"></i> Drop-off Locations</h2>
+                <div id="mapContainer"></div>
+                <div id="locationDetails" class="hidden mt-3">
+                    <div class="delivery-contact">
+                        <h3 id="locationName">Location Name</h3>
+                        <p id="locationAddress"><i class="fas fa-map-pin"></i> Address will appear here</p>
+                        <p id="locationHours"><i class="fas fa-clock"></i> Hours will appear here</p>
+                        <p id="locationContact"><i class="fas fa-phone"></i> Contact will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-chart-pie"></i> My Donation Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="totalDonations">0</h3>
+                        <p>Total Donations</p>
+                        <i class="fas fa-hand-holding-heart" style="font-size: 2rem; color: var(--primary-light); margin-top: 0.5rem;"></i>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="mealsShared">0</h3>
+                        <p>Meals Shared</p>
+                        <i class="fas fa-utensils" style="font-size: 2rem; color: var(--primary-light); margin-top: 0.5rem;"></i>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="lastDonation">-</h3>
+                        <p>Last Donation</p>
+                        <i class="fas fa-calendar-check" style="font-size: 2rem; color: var(--primary-light); margin-top: 0.5rem;"></i>
+                    </div>
+                </div>
+
+                <h3><i class="fas fa-history"></i> Recent Donations</h3>
+                <div id="donationHistory">
+                    <p>Loading your donation history...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    
+    <!-- Leaflet Map -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+    <script>
+        // Firebase configuration - replace with your actual config
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
+
+        // Map initialization
+        let map;
+        let markers = [];
+
+        // Tab navigation
+        function openTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(.nav-tab[onclick="openTab('${tabId}')"]).classList.add('active');
+
+            // Initialize map when tab is opened
+            if (tabId === 'map' && !map) {
+                initMap();
+            }
+        }
+
+        // Initialize the map
+        function initMap() {
+            map = L.map('mapContainer').setView([51.505, -0.09], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Sample locations - replace with your actual data from Firebase
+            const sampleLocations = {
+                loc1: {
+                    name: "Community Food Bank",
+                    address: "123 Main St, Anytown, AN 12345",
+                    lat: 51.505,
+                    lng: -0.09,
+                    hours: "Mon-Fri 9am-5pm",
+                    contact: "555-123-4567"
+                },
+                loc2: {
+                    name: "Homeless Shelter Kitchen",
+                    address: "456 Oak Ave, Anytown, AN 12345",
+                    lat: 51.51,
+                    lng: -0.1,
+                    hours: "Daily 8am-8pm",
+                    contact: "555-987-6543"
+                }
+            };
+
+            // Add markers for each location
+            Object.keys(sampleLocations).forEach(key => {
+                const location = sampleLocations[key];
+                const marker = L.marker([location.lat, location.lng])
+                    .addTo(map)
+                    .bindPopup(<b>${location.name}</b><br>${location.address});
+                
+                marker.on('click', () => {
+                    showLocationDetails(location);
+                });
+                
+                markers.push(marker);
+            });
+
+            // Fit map to markers
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds());
+            }
+        }
+
+        // Show location details
+        function showLocationDetails(location) {
+            const details = document.getElementById('locationDetails');
+            details.classList.remove('hidden');
+            document.getElementById('locationName').textContent = location.name;
+            document.getElementById('locationAddress').textContent = location.address;
+            document.getElementById('locationHours').textContent = Hours: ${location.hours};
+            document.getElementById('locationContact').textContent = Contact: ${location.contact};
+        }
+
+        // Load food requests from Firebase
+        function loadRequests() {
+            // Sample data - replace with your actual Firebase data
+            const sampleRequests = {
+                req1: {
+                    title: "Fresh Produce Needed",
+                    organization: "Community Kitchen",
+                    foodType: "Fruits and Vegetables",
+                    quantity: "50 lbs",
+                    expiry: "Within 3 days",
+                    status: "active",
+                    coordinator: {
+                        name: "Sarah Johnson",
+                        phone: "555-234-5678"
+                    },
+                    location: "789 Elm St, Anytown",
+                    hours: "Weekdays 10am-4pm"
+                },
+                req2: {
+                    title: "Prepared Meals for Shelter",
+                    organization: "Hope Shelter",
+                    foodType: "Cooked Meals",
+                    quantity: "30 servings",
+                    expiry: "Today",
+                    status: "active",
+                    coordinator: {
+                        name: "Michael Brown",
+                        phone: "555-345-6789"
+                    },
+                    location: "456 Oak Ave, Anytown",
+                    hours: "Daily 6pm-8pm"
+                }
+            };
+
+            const requestsList = document.getElementById('requestsList');
+            requestsList.innerHTML = '';
+
+            Object.keys(sampleRequests).forEach(key => {
+                const request = sampleRequests[key];
+                if (request.status === 'active') {
+                    const requestElement = document.createElement('div');
+                    requestElement.className = 'food-item';
+                    requestElement.innerHTML = `
+                        <div>
+                            <h3>${request.title}</h3>
+                            <p><strong>Requested by:</strong> ${request.organization}</p>
+                            <p><strong>Food Type:</strong> ${request.foodType}</p>
+                            <p><strong>Quantity Needed:</strong> ${request.quantity}</p>
+                            <p><strong>Expiry:</strong> ${request.expiry}</p>
+                        </div>
+                        <button class="btn" onclick="showDeliveryInfo('${key}')">
+                            <span>Donate Food</span> <i class="fas fa-arrow-right"></i>
+                        </button>
+                    `;
+                    requestsList.appendChild(requestElement);
+                }
+            });
+        }
+
+        // Show delivery info
+        function showDeliveryInfo(requestId) {
+            // Sample data - replace with your actual Firebase data
+            const sampleRequests = {
+                req1: {
+                    title: "Fresh Produce Needed",
+                    organization: "Community Kitchen",
+                    foodType: "Fruits and Vegetables",
+                    quantity: "50 lbs",
+                    expiry: "Within 3 days",
+                    status: "active",
+                    coordinator: {
+                        name: "Sarah Johnson",
+                        phone: "555-234-5678"
+                    },
+                    location: "789 Elm St, Anytown",
+                    hours: "Weekdays 10am-4pm"
+                }
+            };
+
+            const request = sampleRequests[requestId] || sampleRequests.req1;
+            const deliveryInfo = document.getElementById('deliveryInfo');
+            
+            deliveryInfo.innerHTML = `
+                <h2><i class="fas fa-truck"></i> Delivery Information</h2>
+                <div class="delivery-contact">
+                    <h3>Recipient: ${request.organization}</h3>
+                    <p><strong><i class="fas fa-user"></i> Coordinator:</strong> ${request.coordinator.name}</p>
+                    <p><strong><i class="fas fa-phone"></i> Contact:</strong> ${request.coordinator.phone}</p>
+                    <p><strong><i class="fas fa-map-marker-alt"></i> Location:</strong> ${request.location}</p>
+                    <p><strong><i class="fas fa-clock"></i> Timings:</strong> ${request.hours}</p>
+                </div>
+                <div class="donate-form">
+                    <h3><i class="fas fa-edit"></i> Submit Your Food Donation</h3>
+                    <form onsubmit="submitDonation(event, '${requestId}')">
+                        <div class="form-group">
+                            <label for="foodType">Type of Food</label>
+                            <select id="foodType" required>
+                                <option value="">-- Select --</option>
+                                <option value="cooked">Cooked Meals</option>
+                                <option value="fresh">Fresh Produce</option>
+                                <option value="packaged">Packaged Food</option>
+                                <option value="dairy">Dairy Products</option>
+                                <option value="bakery">Bakery Items</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity">Quantity</label>
+                            <input type="number" id="quantity" min="1" required placeholder="Enter quantity">
+                        </div>
+                        <div class="form-group">
+                            <label for="notes">Special Notes</label>
+                            <textarea id="notes" rows="3" placeholder="Any special instructions or details about your donation"></textarea>
+                        </div>
+                        <button type="submit" class="btn">
+                            <i class="fas fa-paper-plane"></i> Confirm Donation
+                        </button>
+                    </form>
+                </div>
+            `;
+            
+            deliveryInfo.classList.remove('hidden');
+            deliveryInfo.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Submit donation
+        function submitDonation(event, requestId) {
+            event.preventDefault();
+            
+            // In a real app, you would check Firebase auth here
+            const userId = "sampleUser"; // Replace with actual user ID
+            
+            const donation = {
+                requestId,
+                foodType: document.getElementById('foodType').value,
+                quantity: document.getElementById('quantity').value,
+                notes: document.getElementById('notes').value,
+                timestamp: new Date().toISOString(),
+                status: 'pending',
+                donorId: userId
+            };
+
+            // In a real app, you would save to Firebase here
+            console.log('Donation submitted:', donation);
+            
+            // Show success message
+            alert('Thank you for your donation! The recipient will contact you soon to arrange details.');
+            document.getElementById('deliveryInfo').classList.add('hidden');
+            updateDashboard();
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            // Sample data - replace with your actual Firebase data
+            const sampleDonations = [
+                {
+                    foodType: "Fresh Produce",
+                    quantity: "20 lbs",
+                    timestamp: new Date().toISOString()
+                },
+                {
+                    foodType: "Packaged Food",
+                    quantity: "15 items",
+                    timestamp: new Date(Date.now() - 86400000).toISOString() // Yesterday
+                }
+            ];
+
+            document.getElementById('totalDonations').textContent = sampleDonations.length;
+            document.getElementById('mealsShared').textContent = sampleDonations.reduce((sum, d) => sum + (parseInt(d.quantity) || 0), 0);
+            document.getElementById('lastDonation').textContent = new Date(sampleDonations[0].timestamp).toLocaleDateString();
+
+            // Populate donation history
+            const historyHTML = sampleDonations.map(donation => `
+                <div class="donation-item">
+                    <p><strong>${donation.foodType}</strong> - ${donation.quantity}</p>
+                    <small><i class="fas fa-calendar-alt"></i> ${new Date(donation.timestamp).toLocaleString()}</small>
+                </div>
+            `).join('');
+
+            document.getElementById('donationHistory').innerHTML = historyHTML;
+        }
+
+        // Initialize the app
+        function initApp() {
+            // In a real app, you would check auth state here
+            loadRequests();
+            updateDashboard();
+        }
+
+        // Start the app
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
