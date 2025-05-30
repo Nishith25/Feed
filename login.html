@@ -1,3 +1,4 @@
+<!-- Full Updated HTML Code -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -193,6 +194,46 @@
         }
     </style>
 </head>
+<head>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCAWDb_OtNwl4dAB9wL5F5Ga3K2POBm8jI",
+    authDomain: "food-waste-management-3d549.firebaseapp.com",
+    projectId: "food-waste-management-3d549",
+    storageBucket: "food-waste-management-3d549.firebasestorage.app",
+    messagingSenderId: "969339083422",
+    appId: "1:969339083422:web:bc4d1b3c7e4525e64cb98f",
+    measurementId: "G-V79Z1QP0B3"
+  };
+  firebase.initializeApp(firebaseConfig);
+</script>
+<script>
+  function signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider)
+      .then((result) => {
+        const user = result.user;
+        firebase.database().ref('users/' + user.uid).set({
+          firstName: user.displayName.split(" ")[0] || "",
+          lastName: user.displayName.split(" ")[1] || "",
+          email: user.email,
+          username: user.email.split("@")[0],
+          userType: "google-user"
+        });
+        alert("Signed in successfully!");
+        window.location.href = "home.html";
+      })
+      .catch((error) => {
+        console.error(error);
+        alert("Google sign-in error: " + error.message);
+      });
+  }
+</script>
+</head>
 <body>
     <div class="container">
         <h1 class="app-title text-center">Food Waste Management System</h1>
@@ -217,20 +258,23 @@
                     </div>
                     <button type="button" class="btn-login" onclick="auth()">Login</button>
                     <div class="register-link">
-                        <p>Don't have an account? <a href="#">Register here</a></p>
+                        <p>Don't have an account? <a href="signup.html">Register here</a></p>
+                    </div>
+                    <div class="text-center">
+                        <button onclick="signInWithGoogle()" class="btn btn-danger" type="button">
+                          <i class='bx bxl-google'></i> Sign in with Google
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
     <script>
         function auth() {
             var username = document.getElementById("username").value;
             var password = document.getElementById("password").value;
 
             if (username === "admin1" && password === "admin123") {
-                // Create a nice looking alert with animation
                 const alertDiv = document.createElement('div');
                 alertDiv.style.position = 'fixed';
                 alertDiv.style.top = '20px';
@@ -244,8 +288,6 @@
                 alertDiv.style.animation = 'slideIn 0.5s forwards';
                 alertDiv.innerHTML = '<i class="bx bx-check-circle" style="margin-right: 10px;"></i> Login successful! Redirecting...';
                 document.body.appendChild(alertDiv);
-                
-                // Remove the alert after 3 seconds
                 setTimeout(() => {
                     alertDiv.style.animation = 'slideOut 0.5s forwards';
                     setTimeout(() => {
@@ -254,7 +296,6 @@
                     }, 500);
                 }, 2000);
             } else {
-                // Create error alert
                 const errorDiv = document.createElement('div');
                 errorDiv.style.position = 'fixed';
                 errorDiv.style.top = '20px';
@@ -268,16 +309,12 @@
                 errorDiv.style.animation = 'slideIn 0.5s forwards';
                 errorDiv.innerHTML = '<i class="bx bx-error-circle" style="margin-right: 10px;"></i> Invalid username or password';
                 document.body.appendChild(errorDiv);
-                
-                // Remove the alert after 3 seconds
                 setTimeout(() => {
                     errorDiv.style.animation = 'slideOut 0.5s forwards';
                     setTimeout(() => {
                         document.body.removeChild(errorDiv);
                     }, 500);
                 }, 3000);
-                
-                // Add shake animation to form
                 const form = document.querySelector('.login-form');
                 form.style.animation = 'shake 0.5s';
                 setTimeout(() => {
@@ -286,7 +323,6 @@
             }
         }
     </script>
-
     <style>
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
