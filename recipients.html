@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Food Donations | Food Waste Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        :root {
+            --primary: #28a745;
+            --primary-light: #81C784;
+            --primary-dark: #218838;
+            --secondary: #FF9800;
+            --accent: #2196F3;
+            --text: #333;
+            --text-light: #777;
+            --bg: #f5f7fa;
+            --card-bg: #fff;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        .site-header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .main-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-brand i {
+            color: var(--secondary);
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a.active {
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary);
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 0.6rem 1.5rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-warning {
+            background-color: var(--secondary);
+        }
+
+        .btn-warning:hover {
+            background-color: #e68a00;
+        }
+
+        /* Main Content */
+        .recipients-page {
+            padding: 2rem 0;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .page-header h1 {
+            color: var(--primary-dark);
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .page-header p {
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Search & Filters */
+        .search-filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-container {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 2.5rem;
+            border: 1px solid #ddd;
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            transition: var(--transition);
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: var(--radius);
+            font-family: 'Poppins', sans-serif;
+            transition: var(--transition);
+            min-width: 200px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+        }
+
+        .filter-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-button:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Map Section */
+        .map-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-header h2 {
+            color: var(--primary-dark);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .view-toggle button {
+            background: none;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .view-toggle button.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        #food-map {
+            height: 400px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid #eee;
+            margin-top: 1rem;
+        }
+
+        /* Food Listings */
+        .food-listings {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .restaurant-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            transition: var(--transition);
+            border: 1px solid #eee;
+        }
+
+        .restaurant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-light);
+        }
+
+        .restaurant-info h3 {
+            color: var(--primary-dark);
+            margin-bottom: 0.8rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .restaurant-info h3 i {
+            color: var(--secondary);
+        }
+
+        .food-details {
+            margin-bottom: 1.2rem;
+        }
+
+        .food-type, .pickup-time, .location {
+            margin-bottom: 0.6rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .food-type i, .pickup-time i, .location i {
+            width: 20px;
+            text-align: center;
+            color: var(--primary);
+        }
+
+        .distance-badge {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+
+        .request-button {
+            width: 100%;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .request-button:hover {
+            background-color: #e68a00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer */
+        .site-footer {
+            background-color: var(--primary-dark);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-logo i {
+            color: var(--secondary);
+        }
+
+        .footer-about {
+            max-width: 300px;
+        }
+
+        .footer-about p {
+            margin-bottom: 1rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-links a {
+            color: white;
+            background: rgba(255,255,255,0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .social-links a:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+        }
+
+        .footer-links h3 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+            text-decoration: underline;
+        }
+
+        .footer-contact p {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .footer-bottom a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .search-filters {
+                flex-direction: column;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            .filter-select, .filter-button {
+                width: 100%;
+            }
+            
+            .food-listings {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Leaflet Map Customization */
+        .leaflet-popup-content {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .leaflet-popup-content-wrapper {
+            border-radius: var(--radius);
+        }
+        
+        .leaflet-popup-content b {
+            color: var(--primary-dark);
+        }
+        
+        .leaflet-popup-content i {
+            margin-right: 5px;
+            color: var(--primary);
+        }
+        
+        .leaflet-marker-icon {
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <header class="site-header">
+        <div class="container">
+            <nav class="main-nav">
+                <a href="index.html" class="nav-brand">
+                    <i class="fas fa-recycle"></i>FoodShare
+                </a>
+                <ul class="nav-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="donor.html">Donate Food</a></li>
+                    <li><a class="active" href="recipients.html">Find Food</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="login.html" class="btn btn-warning">Login</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="recipients-page">
+        <div class="container">
+            <div class="page-header">
+                <h1><i class="fas fa-utensils"></i> Available Food Near You</h1>
+                <p>Browse food donations from local restaurants, caterers, and grocery stores. Help reduce food waste while getting quality meals.</p>
+            </div>
+            
+            <!-- Search & Filters -->
+            <div class="search-filters">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" placeholder="Search by location or food type..." class="search-bar">
+                </div>
+                <div class="filter-group">
+                    <select class="filter-select">
+                        <option>All Food Types</option>
+                        <option>Fresh Produce</option>
+                        <option>Prepared Meals</option>
+                        <option>Bakery</option>
+                        <option>Dairy</option>
+                        <option>Packaged Food</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>Any Distance</option>
+                        <option>Within 1 mile</option>
+                        <option>Within 3 miles</option>
+                        <option>Within 5 miles</option>
+                    </select>
+                    <button class="filter-button">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div class="map-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-map-marked-alt"></i> Food Donation Map</h2>
+                    <div class="view-toggle">
+                        <button class="active">Map View</button>
+                        <button>List View</button>
+                    </div>
+                </div>
+                <div id="food-map"></div>
+            </div>
+
+            <!-- Food Listings -->
+            <div class="section-header">
+                <h2><i class="fas fa-list"></i> Available Donations</h2>
+                <div>
+                    <span>Showing 12 results</span>
+                </div>
+            </div>
+            
+            <div class="food-listings">
+                <!-- Restaurant Card 1 -->
+                <div class="restaurant-card">
+                    <div class="restaurant-info">
+                        <h3><i class="fas fa-store"></i> Green Bistro</h3>
+                        <div class="food-details">
+                            <p class="food-type"><i class="fas fa-utensils"></i> Prepared Meals (10 servings)</p>
+                            <p class="pickup-time"><i class="fas fa-clock"></i> Pickup by: Today, 8 PM</p>
+                            <p class="location"><i class="fas fa-map-marker-alt"></i> 123 Main St <span class="distance-badge">1.2 miles</span></p>
+                        </div>
+                    </div>
+                    <button class="request-button">
+                        <i class="fas fa-hand-holding-heart"></i> Request Food
+                    </button>
+                </div>
+
+                <!-- Restaurant Card 2 -->
+                <div class="restaurant-card">
+                    <div class="restaurant-info">
+                        <h3><i class="fas fa-bread-slice"></i> Sunny Bakery</h3>
+                        <div class="food-details">
+                            <p class="food-type"><i class="fas fa-bread-slice"></i> Fresh Bread (15 loaves)</p>
+                            <p class="pickup-time"><i class="fas fa-clock"></i> Pickup by: Tomorrow, 10 AM</p>
+                            <p class="location"><i class="fas fa-map-marker-alt"></i> 456 Oak Ave <span class="distance-badge">0.8 miles</span></p>
+                        </div>
+                    </div>
+                    <button class="request-button">
+                        <i class="fas fa-hand-holding-heart"></i> Request Food
+                    </button>
+                </div>
+
+                <!-- Restaurant Card 3 -->
+                <div class="restaurant-card">
+                    <div class="restaurant-info">
+                        <h3><i class="fas fa-coffee"></i> Urban Cafe</h3>
+                        <div class="food-details">
+                            <p class="food-type"><i class="fas fa-leaf"></i> Salads & Sandwiches (8 packs)</p>
+                            <p class="pickup-time"><i class="fas fa-clock"></i> Pickup by: Today, 6 PM</p>
+                            <p class="location"><i class="fas fa-map-marker-alt"></i> 789 Pine Rd <span class="distance-badge">2.1 miles</span></p>
+                        </div>
+                    </div>
+                    <button class="request-button">
+                        <i class="fas fa-hand-holding-heart"></i> Request Food
+                    </button>
+                </div>
+
+                <!-- Restaurant Card 4 -->
+                <div class="restaurant-card">
+                    <div class="restaurant-info">
+                        <h3><i class="fas fa-apple-alt"></i> Farmers Market</h3>
+                        <div class="food-details">
+                            <p class="food-type"><i class="fas fa-apple-alt"></i> Fresh Produce (25 lbs)</p>
+                            <p class="pickup-time"><i class="fas fa-clock"></i> Pickup by: Today, 5 PM</p>
+                            <p class="location"><i class="fas fa-map-marker-alt"></i> 321 Market St <span class="distance-badge">1.5 miles</span></p>
+                        </div>
+                    </div>
+                    <button class="request-button">
+                        <i class="fas fa-hand-holding-heart"></i> Request Food
+                    </button>
+                </div>
+
+                <!-- Restaurant Card 5 -->
+                <div class="restaurant-card">
+                    <div class="restaurant-info">
+                        <h3><i class="fas fa-ice-cream"></i> Sweet Treats</h3>
+                        <div class="food-details">
+                            <p class="food-type"><i class="fas fa-ice-cream"></i> Desserts (12 servings)</p>
+                            <p class="pickup-time"><i class="fas fa-clock"></i> Pickup by: Tomorrow, 3 PM</p>
+                            <p class="location"><i class="fas fa-map-marker-alt"></i> 555 Sweet Ave <span class="distance-badge">0.5 miles</span></p>
+                        </div>
+                    </div>
+                    <button class="request-button">
+                        <i class="fas fa-hand-holding-heart"></i> Request Food
+                    </button>
+                </div>
+
+                <!-- Restaurant Card 6 -->
+                <div class="restaurant-card">
+                    <div class="restaurant-info">
+                        <h3><i class="fas fa-drumstick-bite"></i> Meat Market</h3>
+                        <div class="food-details">
+                            <p class="food-type"><i class="fas fa-drumstick-bite"></i> Fresh Meat (8 lbs)</p>
+                            <p class="pickup-time"><i class="fas fa-clock"></i> Pickup by: Today, 7 PM</p>
+                            <p class="location"><i class="fas fa-map-marker-alt"></i> 777 Butcher St <span class="distance-badge">1.8 miles</span></p>
+                        </div>
+                    </div>
+                    <button class="request-button">
+                        <i class="fas fa-hand-holding-heart"></i> Request Food
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <i class="fas fa-recycle"></i>FoodShare
+                    </div>
+                    <p>Connecting food donors with recipients to reduce waste and help communities in need.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="donor.html">Donate Food</a></li>
+                        <li><a href="recipients.html">Find Food</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">How It Works</a></li>
+                        <li><a href="#">Food Safety Guidelines</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Partners</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h3>Contact Us</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Green Street, Hyderabad</p>
+                    <p><i class="fas fa-phone-alt"></i> +91 91234 56789</p>
+                    <p><i class="fas fa-envelope"></i> contact@foodshare.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 FoodShare. All rights reserved. <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Leaflet JS for Maps -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize Map
+        const map = L.map('food-map').setView([17.3850, 78.4867], 13); // Hyderabad coordinates
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Custom food icon
+        const foodIcon = L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/1046/1046857.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32]
+        });
+
+        // Restaurant Locations with more details
+        const restaurants = [
+            { 
+                name: "Green Bistro", 
+                lat: 17.3850, 
+                lng: 78.4867, 
+                food: "Prepared Meals (10 servings)",
+                address: "123 Main St, Hyderabad",
+                hours: "Today until 8 PM",
+                phone: "555-123-4567",
+                type: "Prepared Meals",
+                distance: "1.2 miles"
+            },
+            { 
+                name: "Sunny Bakery", 
+                lat: 17.3900, 
+                lng: 78.4800, 
+                food: "Fresh Bread (15 loaves)",
+                address: "456 Oak Ave, Hyderabad",
+                hours: "Tomorrow by 10 AM",
+                phone: "555-234-5678",
+                type: "Bakery",
+                distance: "0.8 miles"
+            },
+            { 
+                name: "Urban Cafe", 
+                lat: 17.3800, 
+                lng: 78.4900, 
+                food: "Salads & Sandwiches (8 packs)",
+                address: "789 Pine Rd, Hyderabad",
+                hours: "Today until 6 PM",
+                phone: "555-345-6789",
+                type: "Prepared Meals",
+                distance: "2.1 miles"
+            },
+            { 
+                name: "Farmers Market", 
+                lat: 17.3870, 
+                lng: 78.4830, 
+                food: "Fresh Produce (25 lbs)",
+                address: "321 Market St, Hyderabad",
+                hours: "Today until 5 PM",
+                phone: "555-456-7890",
+                type: "Fresh Produce",
+                distance: "1.5 miles"
+            },
+            { 
+                name: "Sweet Treats", 
+                lat: 17.3830, 
+                lng: 78.4880, 
+                food: "Desserts (12 servings)",
+                address: "555 Sweet Ave, Hyderabad",
+                hours: "Tomorrow by 3 PM",
+                phone: "555-567-8901",
+                type: "Desserts",
+                distance: "0.5 miles"
+            },
+            { 
+                name: "Meat Market", 
+                lat: 17.3820, 
+                lng: 78.4750, 
+                food: "Fresh Meat (8 lbs)",
+                address: "777 Butcher St, Hyderabad",
+                hours: "Today until 7 PM",
+                phone: "555-678-9012",
+                type: "Meat",
+                distance: "1.8 miles"
+            }
+        ];
+
+        // Add Markers with custom icons and detailed popups
+        restaurants.forEach(restaurant => {
+            L.marker([restaurant.lat, restaurant.lng], { icon: foodIcon })
+                .addTo(map)
+                .bindPopup(`
+                    <b>${restaurant.name}</b><br>
+                    <i class="fas fa-utensils"></i> ${restaurant.food}<br>
+                    <i class="fas fa-map-marker-alt"></i> ${restaurant.address}<br>
+                    <i class="fas fa-clock"></i> ${restaurant.hours}<br>
+                    <i class="fas fa-phone"></i> ${restaurant.phone}<br>
+                    <i class="fas fa-running"></i> ${restaurant.distance} away
+                `);
+        });
+
+        // Fit map to markers with padding
+        const group = new L.featureGroup(restaurants.map(r => L.marker([r.lat, r.lng])));
+        map.fitBounds(group.getBounds().pad(0.2));
+
+        // Request button functionality
+        document.querySelectorAll('.request-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const restaurantCard = this.closest('.restaurant-card');
+                const restaurantName = restaurantCard.querySelector('h3').textContent;
+                
+                // In a real app, this would connect to your backend
+                alert(Request submitted for food from ${restaurantName}! The donor will contact you soon.);
+                
+                // Visual feedback
+                const originalHTML = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-check"></i> Request Sent!';
+                this.style.backgroundColor = 'var(--primary)';
+                
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                    this.style.backgroundColor = 'var(--secondary)';
+                }, 2000);
+            });
+        });
+
+        // Filter button functionality
+        document.querySelector('.filter-button').addEventListener('click', function() {
+            const searchTerm = document.querySelector('.search-bar').value.toLowerCase();
+            const foodTypeFilter = document.querySelectorAll('.filter-select')[0].value;
+            const distanceFilter = document.querySelectorAll('.filter-select')[1].value;
+            
+            document.querySelectorAll('.restaurant-card').forEach(card => {
+                const name = card.querySelector('h3').textContent.toLowerCase();
+                const foodType = card.querySelector('.food-type').textContent;
+                const distance = card.querySelector('.distance-badge').textContent;
+                
+                const matchesSearch = name.includes(searchTerm) || searchTerm === '';
+                const matchesFoodType = foodTypeFilter === 'All Food Types' || foodType.includes(foodTypeFilter);
+                const matchesDistance = distanceFilter === 'Any Distance' || 
+                    (distanceFilter === 'Within 1 mile' && parseFloat(distance) <= 1) ||
+                    (distanceFilter === 'Within 3 miles' && parseFloat(distance) <= 3) ||
+                    (distanceFilter === 'Within 5 miles' && parseFloat(distance) <= 5);
+                
+                card.style.display = (matchesSearch && matchesFoodType && matchesDistance) ? 'block' : 'none';
+            });
+        });
+
+        // View toggle functionality
+        const viewToggleButtons = document.querySelectorAll('.view-toggle button');
+        viewToggleButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                viewToggleButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                if (this.textContent === 'Map View') {
+                    document.getElementById('food-map').style.display = 'block';
+                    document.querySelector('.food-listings').style.display = 'grid';
+                } else {
+                    document.getElementById('food-map').style.display = 'none';
+                    document.querySelector('.food-listings').style.display = 'grid';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
